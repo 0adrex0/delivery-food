@@ -19,7 +19,7 @@ const menu = document.querySelector('.menu');
 const logo = document.querySelector('.logo');
 const cardsMenu = document.querySelector('.cards-menu');
 
-// 
+// cart
 const modalBody = document.querySelector('.modal-body');
 const sectionHeading = document.querySelector('.menu .section-heading');
 const modalPrice = document.querySelector('.modal-pricetag')
