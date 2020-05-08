@@ -19,9 +19,13 @@ const menu = document.querySelector('.menu');
 const logo = document.querySelector('.logo');
 const cardsMenu = document.querySelector('.cards-menu');
 
+const modalBody = document.querySelector('.modal-body');
 const sectionHeading = document.querySelector('.menu .section-heading');
-
+const modalPrice = document.querySelector('.modal-pricetag')
+const buttonClearCart = document.querySelector('.clear-cart');
 let login = localStorage.getItem('gloDelivery');
+
+let cartList = [];
 
 const getData = async function (url) {
   const response = await fetch(url);
@@ -49,22 +53,23 @@ function authorized() {
     authBtn.style.display = '';
     userName.style.display = '';
     btnOut.style.display = '';
+    cartBtn.style.display = '';
     btnOut.removeEventListener('click', logOut);
     checkAuth();
   }
 
-  console.log('Авторизован');
 
   userName.textContent = login;
   authBtn.style.display = 'none';
   userName.style.display = 'inline';
-  btnOut.style.display = 'block';
+  btnOut.style.display = 'flex';
+  cartBtn.style.display = 'flex';
+
   
   btnOut.addEventListener('click', logOut);
 }
 
 function notAuthorized() {
-  console.log('Не авторизован');
 
   function logIn(event) {
     event.preventDefault();
@@ -124,7 +129,7 @@ function createCardRestaurant(resraurant) {
           </div>
           <div class="card-info">
             <div class="rating">${stars}</div>
-            <div class="price">От ${price} ₽</div>
+            <div class="price">От ${price} ₴</div>
             <div class="category">${kitchen}</div>
           </div>
       </div>
@@ -158,7 +163,7 @@ function createCardGood({ description, id, image, name, price, }) {
               <span class="button-card-text">В корзину</span>
               <span class="button-cart-svg"></span>
             </button>
-            <strong class="card-price-bold">${price} ₽</strong>
+            <strong class="card-price-bold card-price">${price} ₴</strong>
           </div>
         </div>
   `);
@@ -188,36 +193,132 @@ function openGoods(event) {
       restaurants.classList.add('hide');
       containerPromo.classList.add('hide');
       menu.classList.remove('hide');
-      console.log(restaurant)
+
       getData('./db/' + restaurant.dataset.products).then(function(data) {
         data.forEach(createCardGood);
 
-        headingTitle.innerText = restaurantTitle.innerText;
-        headingPrice.innerText = restaurantPrice.innerText;
-        headingRating.innerText = restaurantRating.innerText;
-        headingCategory.innerText = restaurantCategory.innerText;
+        headingTitle.textContent = restaurantTitle.textContent;
+        headingPrice.textContent = restaurantPrice.textContent;
+        headingRating.textContent = restaurantRating.textContent;
+        headingCategory.textContent = restaurantCategory.textContent;
 
-        console.log(sectionHeading);
       });
     }
   } else {
     toogelModalAuth();
   } 
 }
-getData('./db/partners.json').then(function(data) {
-  data.forEach(createCardRestaurant);
-});
 
+
+function addToCart(event) {
+  const target = event.target;
+
+  const btnAddToCart = target.closest('.button-add-cart');
+
+ if(btnAddToCart) {
+   const card = target.closest('.card');
+   const title = card.querySelector('.card-title-reg').textContent;
+   const cost = card.querySelector('.card-price').textContent;
+   const id = card.id;
+
+   const food = cartList.find(function(item) {
+      return item.id === id;
+   });
+
+   if (food) {
+      food.count += 1;
+
+   } else {
+      cartList.push({
+        id,
+        title,
+        cost,
+        count: 1
+      });
+   }
+ }
+}
+
+function renderCart() {
+  modalBody.textContent = '';
+
+  cartList.forEach(function({ id, title, cost, count }) {
+
+    const itemCart = `
+      <div class="food-row">
+        <span class="food-name">${title}</span>
+        <strong class="food-price">${cost}</strong>
+        <div class="food-counter">
+          <button class="counter-button cout-minus" data-id='${id}'>-</button>
+          <span class="counter">${count}</span>
+          <button class="counter-button count-plus" data-id='${id}'>+</button>
+        </div>
+      </div>`;
+
+      modalBody.insertAdjacentHTML('beforeend', itemCart);
+  });
+
+  const totalPrice = cartList.reduce(function(result, item) {
+
+    return result + (parseFloat(item.cost) * parseFloat(item.count)) ; 
+  }, 0);
+
+  
+  modalPrice.textContent = totalPrice + '₴' ;
+  
+}
+
+function changeCount(event) {
+  const target = event.target;
+
+  if (target.classList.contains('counter-button')) {
+
+    const food = cartList.find(function(item) {
+      return item.id === target.dataset.id;
+    });
+
+    if(target.classList.contains('cout-minus')) {
+      food.count--;
+      if(food.count === 0) {
+        cartList.splice(cartList.indexOf(food), 1);
+      }
+    }
+
+    if(target.classList.contains('count-plus')) {
+      food.count++;
+    }
+
+    renderCart();
+  };
+}
 
 function init () {
+  getData('./db/partners.json').then(function(data) {
+    data.forEach(createCardRestaurant);
+  });
+
+  cartBtn.addEventListener('click', function() {
+    renderCart();
+    toggleModal();
+  });
+
+  modalBody.addEventListener('click', changeCount);
+
   cardsRestaurants.addEventListener('click', openGoods);
+
+  cardsMenu.addEventListener('click', addToCart);
+
+  buttonClearCart.addEventListener('click', function() {
+    cartList.length = 0;
+    renderCart();
+  });
+
   logo.addEventListener('click', function () {
       restaurants.classList.remove('hide');
       containerPromo.classList.remove('hide');
       menu.classList.add('hide');
-  })
+  });
 
-  cartBtn.addEventListener("click", toggleModal);
   cartClose.addEventListener("click", toggleModal);
 
   checkAuth();
