@@ -19,6 +19,7 @@ const menu = document.querySelector('.menu');
 const logo = document.querySelector('.logo');
 const cardsMenu = document.querySelector('.cards-menu');
 
+// 
 const modalBody = document.querySelector('.modal-body');
 const sectionHeading = document.querySelector('.menu .section-heading');
 const modalPrice = document.querySelector('.modal-pricetag')
@@ -311,7 +312,14 @@ function init () {
   cardsMenu.addEventListener('click', addToCart);
 
   cartOrder.addEventListener('click', function() {
-    localStorage.setItem('order', JSON.stringify(cartList));
+    if(cartList.length) {
+      localStorage.setItem('order', JSON.stringify(cartList));
+      toggleModal();
+      alert("Спасибо, Ваш Заказ оформлен!");
+
+      cartList.length = 0;
+    }
+    
   });
 
   buttonClearCart.addEventListener('click', function() {
