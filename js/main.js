@@ -23,6 +23,8 @@ const modalBody = document.querySelector('.modal-body');
 const sectionHeading = document.querySelector('.menu .section-heading');
 const modalPrice = document.querySelector('.modal-pricetag')
 const buttonClearCart = document.querySelector('.clear-cart');
+const cartOrder =  cartModal.querySelector('.button-primary');
+
 let login = localStorage.getItem('gloDelivery');
 
 let cartList = [];
@@ -307,6 +309,10 @@ function init () {
   cardsRestaurants.addEventListener('click', openGoods);
 
   cardsMenu.addEventListener('click', addToCart);
+
+  cartOrder.addEventListener('click', function() {
+    localStorage.setItem('order', JSON.stringify(cartList));
+  });
 
   buttonClearCart.addEventListener('click', function() {
     cartList.length = 0;
